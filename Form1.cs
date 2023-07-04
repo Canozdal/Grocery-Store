@@ -1,6 +1,6 @@
 using MySql.Data.MySqlClient;
 using System.Diagnostics;
-
+using System.Web;
 namespace Grocery_Store_Online
 {
     public partial class Form1 : Form
@@ -14,18 +14,36 @@ namespace Grocery_Store_Online
         {
             string searchValueUserName = textBox1.Text;
             string searchValuePassword = textBox2.Text;
-            string sqlQuery = "SELECT * FROM user WHERE username = '{searchValueUserName}' AND password = '{searchValuePassword}'";
-
+            string sqlQuery = "SELECT * FROM user WHERE username = @searchValueUserName AND password = @searchValuePassword";
+            bool isValidLogin=false;
 
             using (MySqlCommand command = new MySqlCommand(sqlQuery, Program.getConnector()))
             {
-                using (MySqlDataReader reader = command.ExecuteReader())
+                command.Parameters.AddWithValue("@searchValueUserName", searchValueUserName);
+                command.Parameters.AddWithValue("@searchValuePassword", searchValuePassword);
+
+                int count = Convert.ToInt32(command.ExecuteScalar());
+                
+                if(count > 0)
                 {
-                    while (reader.Read())
-                    {
-                        Debug.WriteLine("Successful Read");
-                    }
+                    isValidLogin = true;
+                    Debug.WriteLine("Successful login");
                 }
+            }
+            if( isValidLogin )
+            {
+                this.Hide();
+
+                using(Form2 landingPageForm = new Form2())
+                {
+                    landingPageForm.ShowDialog();
+                }
+
+                this.Show();
+            }
+            else
+            {
+                Debug.WriteLine("Invalid Credentials");
             }
         }
 
